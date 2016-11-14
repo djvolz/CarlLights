@@ -1,46 +1,78 @@
-# import GPIO library that includes the pulse width function
+# contro.py
+# <Description>
+# Author: djvolz 11/14/16
+    
+import os
 import time
+import json # import json library to parse messages
+import boto3 # import boto library that handles queuing functions
+import chase
 
-# import json library to parse messages
-import json
+class Controller:
 
-# import boto library that handles queuing functions
-import boto3
+  def __init__(self):
+    # Get the service resource
+    sqs = boto3.resource('sqs')
 
-# configuration parameters
-rotor_duration = 8
+    # Get the queue
+    self._queue = sqs.get_queue_by_name(QueueName='talkWithCarlLights')
 
-# Get the service resource
-sqs = boto3.resource('sqs')
 
-# Get the queue
-queue = sqs.get_queue_by_name(QueueName='talkWithCarlLights')
+  # The response is NOT a resource, but gives you a message ID and MD5
+  # print(response.get('MessageId'))
+  # print(response.get('MD5OfMessageBody'))
 
-# Create a new message
-response = queue.send_message(MessageBody='world')
+  def launchScheme(self, scheme):
+    program = chase.Chase('carl.local:7890', 64)
+    while True:
+      program.run()
+    
 
-# The response is NOT a resource, but gives you a message ID and MD5
-# print(response.get('MessageId'))
-# print(response.get('MD5OfMessageBody'))
+  def processMessages(self):
+    # Create a new message for testing
+    response = self._queue.send_message(MessageBody='world')
+    
+    while True:
+      # Process messages by printing out body and optional author name
+      for message in self._queue.receive_messages(MessageAttributeNames=['Author']):
+          # Get the custom author message attribute if it was set
+          author_text = ''
+          if message.message_attributes is not None:
+              author_name = message.message_attributes.get('Author').get('StringValue')
+              if author_name:
+                  author_text = ' ({0})'.format(author_name)
 
-while True:
-  # print "tick"
-  time.sleep(1)
-  # time.sleep(60.0 - ((time.time() - starttime) % 60.0))
-  # Process messages by printing out body and optional author name
-  for message in queue.receive_messages(MessageAttributeNames=['Author']):
-      # Get the custom author message attribute if it was set
-      author_text = ''
-      if message.message_attributes is not None:
-          author_name = message.message_attributes.get('Author').get('StringValue')
-          if author_name:
-              author_text = ' ({0})'.format(author_name)
+          # Print out the body and author (if set)
+          print('Hello, {0}!{1}'.format(message.body, author_text))
 
-      # Print out the body and author (if set)
-      print('Hello, {0}!{1}'.format(message.body, author_text))
+          # Let the queue know that the message is processed
+          message.delete()
 
-      # Let the queue know that the message is processed
-      message.delete()
+      time.sleep(1)
+
+  def run(self):
+    # Jump straight in
+    # self.processMessages()
+
+
+
+if __name__ == '__main__':
+  controller = Controller()
+
+  try:
+    # DO PROGRAM THAT WE WROTE, MAKE VALHALLA PRETTY
+    controller.run()
+  except (KeyboardInterrupt, SystemExit):  #these aren't caught with exceptions...
+    print("except (KeyboardInterrupt, SystemExit):")
+    os._exit(0)
+  except Exception as e:
+    print("EXCEPTION:")
+    print(e)
+    os._exit(0) #kill process immediately so it can be respawned by the service.
+
+
+
+
 
   # for i in range(1,1000):
   #     # check queue to see if a request exists 

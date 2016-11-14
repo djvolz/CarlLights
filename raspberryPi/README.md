@@ -1,7 +1,7 @@
-Fadecandy Python Examples
+Raspberry Pi
 ========================
 
-This directory contains examples for Fadecandy written in Python.
+This directory contains Fadecandy Raspberry Pi lights controls written in Python.
 
 The Open Pixel Control project includes its own [Python examples](https://github.com/zestyping/openpixelcontrol/tree/master/python_clients). Those will all work with Fadecandy too.
 
