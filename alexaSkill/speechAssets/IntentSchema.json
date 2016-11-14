@@ -1,10 +1,19 @@
 {
   "intents": [
     {
-      "intent": "CarlLightsIntent"
+      "intent": "Carl"
+    },
+    {
+      "intent": "AMAZON.StartOverIntent"
     },
     {
       "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
     }
   ]
 }

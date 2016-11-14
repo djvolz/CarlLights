@@ -1,7 +1,14 @@
-CarlLightsIntent say hello
-CarlLightsIntent say hello world
-CarlLightsIntent hello
-CarlLightsIntent say hi
-CarlLightsIntent say hi world
-CarlLightsIntent hi
-CarlLightsIntent how are you
+AMAZON.StartOverIntent start
+AMAZON.StartOverIntent begin
+AMAZON.StartOverIntent new
+
+AMAZON.StopIntent goodbye
+AMAZON.StopIntent exit
+AMAZON.StopIntent quit
+
+Carl lights
+Carl secure the premises
+Carl lights on
+Carl lamp commander on
+Carl get off his butt
+Carl party time

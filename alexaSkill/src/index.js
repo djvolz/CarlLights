@@ -1,80 +1,240 @@
 /**
-    Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-
-    Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
-
-        http://aws.amazon.com/apache2.0/
-
-    or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-*/
-
-/**
- * This simple sample has no external dependencies or session management, and shows the most basic
- * example of how to create a Lambda function for handling Alexa Skill requests.
- *
- * Examples:
- * One-shot model:
- *  User: "Alexa, tell Hello World to say hello"
- *  Alexa: "Hello World!"
+ * This skill triggers a message queue that instructs a raspberry pi to invoke
+ * commands.
  */
 
-/**
- * App ID for the skill
- */
-var APP_ID = amzn1.ask.skill.2e85d9e5-6fc6-4469-a8ab-3fe78d199959; //replace with "amzn1.echo-sdk-ams.app.[your-unique-value-here]";
+var AWS = require('aws-sdk');
 
-/**
- * The AlexaSkill prototype and helper functions
- */
-var AlexaSkill = require('./AlexaSkill');
+var sqs = new AWS.SQS({region : 'us-east-1'});
 
-/**
- * CarlLights is a child of AlexaSkill.
- * To read more about inheritance in JavaScript, see the link below.
- *
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Introduction_to_Object-Oriented_JavaScript#Inheritance
- */
-var CarlLights = function () {
-    AlexaSkill.call(this, APP_ID);
-};
+var AWS_ACCOUNT = '';
+var QUEUE_NAME  = '';
+var QUEUE_URL   = '';
 
-// Extend AlexaSkill
-CarlLights.prototype = Object.create(AlexaSkill.prototype);
-CarlLights.prototype.constructor = CarlLights;
+// Route the incoming request based on type (LaunchRequest, IntentRequest,
+// etc.) The JSON body of the request is provided in the event parameter.
+exports.handler = function (event, context) {
+    try {
+        console.log("event.session.application.applicationId=" + event.session.application.applicationId);
 
-CarlLights.prototype.eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
-    console.log("CarlLights onSessionStarted requestId: " + sessionStartedRequest.requestId
-        + ", sessionId: " + session.sessionId);
-    // any initialization logic goes here
-};
+        /**
+         * This validates that the applicationId matches what is provided by Amazon.
+         */
+        if (event.session.application.applicationId !== "amzn1.ask.skill.d023ff43-73d6-4ecb-91be-34182bcb1ec8") {
+             context.fail("Invalid Application ID");
+        }
 
-CarlLights.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
-    console.log("CarlLights onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
-    var speechOutput = "Welcome to the Alexa Skills Kit, you can say hello";
-    var repromptText = "You can say hello";
-    response.ask(speechOutput, repromptText);
-};
+        if (event.session.new) {
+            onSessionStarted({requestId: event.request.requestId}, event.session);
+        }
 
-CarlLights.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
-    console.log("CarlLights onSessionEnded requestId: " + sessionEndedRequest.requestId
-        + ", sessionId: " + session.sessionId);
-    // any cleanup logic goes here
-};
-
-CarlLights.prototype.intentHandlers = {
-    // register custom intent handlers
-    "CarlLightsIntent": function (intent, session, response) {
-        response.tellWithCard("Hello World!", "Hello World", "Hello World!");
-    },
-    "AMAZON.HelpIntent": function (intent, session, response) {
-        response.ask("You can say hello to me!", "You can say hello to me!");
+        if (event.request.type === "LaunchRequest") {
+            onLaunch(event.request,
+                event.session,
+                function callback(sessionAttributes, speechletResponse) {
+                    context.succeed(buildResponse(sessionAttributes, speechletResponse));
+                });
+        } else if (event.request.type === "IntentRequest") {
+            onIntent(event.request,
+                event.session,
+                function callback(sessionAttributes, speechletResponse) {
+                    context.succeed(buildResponse(sessionAttributes, speechletResponse));
+                });
+        } else if (event.request.type === "SessionEndedRequest") {
+            onSessionEnded(event.request, event.session);
+            context.succeed();
+        }
+    } catch (e) {
+        context.fail("Exception: " + e);
     }
 };
 
-// Create the handler that responds to the Alexa Request.
-exports.handler = function (event, context) {
-    // Create an instance of the CarlLights skill.
-    var carlLights = new CarlLights();
-    carlLights.execute(event, context);
-};
+/**
+ * Called when the session starts.
+ */
+function onSessionStarted(sessionStartedRequest, session) {
+    console.log("onSessionStarted requestId=" + sessionStartedRequest.requestId +
+        ", sessionId=" + session.sessionId);
+}
+
+/**
+ * Called when the user launches the skill without specifying what they want.
+ */
+function onLaunch(launchRequest, session, callback) {
+    console.log("onLaunch requestId=" + launchRequest.requestId +
+        ", sessionId=" + session.sessionId);
+
+    // Dispatch to your skill's launch.
+    getWelcomeResponse(callback);
+}
+
+/**
+ * Called when the user specifies an intent for this skill. This drives
+ * the main logic for the function.
+ */
+function onIntent(intentRequest, session, callback) {
+    console.log("onIntent requestId=" + intentRequest.requestId +
+        ", sessionId=" + session.sessionId);
+
+    var intent = intentRequest.intent,
+        intentName = intentRequest.intent.name;
+
+    // Dispatch to the individual skill handlers
+
+    if ("Carl" === intentName) {
+        carlLights(intent, session, callback);
+    } else if ("AMAZON.StartOverIntent" === intentName) {
+        getWelcomeResponse(callback);
+    } else if ("AMAZON.HelpIntent" === intentName) {
+        getHelpResponse(session, callback);
+    } else if ("AMAZON.RepeatIntent" === intentName) {
+        getWelcomeResponse(callback);
+    } else if ("AMAZON.StopIntent" === intentName || "AMAZON.CancelIntent" === intentName) {
+        handleSessionEndRequest(callback);
+    } else {
+        throw "Invalid intent";
+    }
+}
+
+/**
+ * Called when the user ends the session.
+ * Is not called when the skill returns shouldEndSession=true.
+ */
+function onSessionEnded(sessionEndedRequest, session) {
+    console.log("onSessionEnded requestId=" + sessionEndedRequest.requestId +
+        ", sessionId=" + session.sessionId);
+}
+
+// --------------- Base Functions that are invoked based on standard utterances -----------------------
+
+// this is the function that gets called to format the response to the user when they first boot the app
+
+function getWelcomeResponse(callback) {
+    var sessionAttributes = {};
+    var shouldEndSession = false;
+    var cardTitle = "Welcome to Robot Roxie";
+
+    var speechOutput = "Hello. I've been watching you.";
+
+    var cardOutput = "It's true.";
+
+    var repromptText = "Either way, what do you want me to do with the lights?";
+
+    console.log('speech output : ' + speechOutput);
+
+    callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, speechOutput, cardOutput, repromptText, shouldEndSession));
+}
+
+// this is the function that gets called to format the response to the user when they ask for help
+function getHelpResponse(session, callback) {
+    var sessionAttributes = {};
+    var cardTitle = "Carl Lights Help";
+    // this will be what the user hears after asking for help
+
+    // first check if a session exists, if so save so it won't be lost
+    if (session.attributes) {
+        sessionAttributes = session.attributes;
+    }
+
+    var speechOutput = "However beautiful the strategy, you should occasionally look at the results.";
+
+    // if the user still does not respond, they will be prompted with this additional information
+    
+    var repromptText = "Taste is chocolate, smooth, not bitter, a bit sweet. Mouthfeel is short of chewy. I found a new one for my favorites list.";
+
+    var shouldEndSession = true;
+
+    callback(sessionAttributes,
+        buildSpeechletResponse(cardTitle, speechOutput, speechOutput, repromptText, shouldEndSession));
+}
+
+// this is the function that gets called to format the response when the user is done
+function handleSessionEndRequest(callback) {
+    var cardTitle = "Get outta here.";
+    
+    var speechOutput = "Hey whatchu doing later.";
+
+    // Setting this to true ends the session and exits the skill.
+
+    var shouldEndSession = true;
+
+    callback({}, buildSpeechletResponse(cardTitle, speechOutput, speechOutput, null, shouldEndSession));
+}
+
+// Control lights
+function carlLights(intent, session, callback) {
+    var cardTitle = "Carl the Lights Butler";
+    var sessionAttributes = {};
+    var shouldEndSession = true;
+
+    // first check if a session exists, if so assume playing a game and use, if not, assume practice mode.
+    if (session.attributes) {
+        sessionAttributes = session.attributes;
+    }    
+
+    var cardOutput = "Doing the lights";
+    var speechOutput = "Get ready, here comes the lights";
+    var repromptText = "When you are ready for more light effects, please say lights.";
+    
+    console.log("Sending Message to SQS Queue");
+
+    var lightsRequest = {};
+        lightsRequest.action = 'lights on';
+
+    // package data to be sent
+    var sendData = {};
+        sendData.request = lightsRequest;
+
+    // set parameters for message queue to transport data        
+    var params = {
+        MessageBody: JSON.stringify(sendData),
+        QueueUrl: QUEUE_URL + AWS_ACCOUNT + '/' + QUEUE_NAME
+    };
+    
+    // send message to SQS and return back message to Alexa
+    sqs.sendMessage(params, function(err, data){
+        if(err) {
+            console.log('error:',"Fail Send Message" + err);
+            callback(sessionAttributes,
+                buildSpeechletResponse(err, "Error", "Error", "Error", true));
+        } else {
+            console.log('successful post - data:',data.MessageId);
+            callback(sessionAttributes,
+            buildSpeechletResponse(cardTitle, speechOutput, speechOutput, repromptText, shouldEndSession));
+        }
+    });
+}
+
+
+// --------------- Helpers that build all of the responses -----------------------
+
+function buildSpeechletResponse(title, output, cardInfo, repromptText, shouldEndSession) {
+    return {
+        outputSpeech: {
+            type: "PlainText",
+            text: output
+        },
+        card: {
+            type: "Simple",
+            title: title,
+            content: cardInfo
+        },
+        reprompt: {
+            outputSpeech: {
+                type: "PlainText",
+                text: repromptText
+            }
+        },
+        shouldEndSession: shouldEndSession
+    };
+}
+
+function buildResponse(sessionAttributes, speechletResponse) {
+    return {
+        version: "1.0",
+        sessionAttributes: sessionAttributes,
+        response: speechletResponse
+    };
+}
 

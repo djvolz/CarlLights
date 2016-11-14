@@ -13,50 +13,71 @@ rotor_duration = 8
 # Get the service resource
 sqs = boto3.resource('sqs')
 
-# Create the queue. This returns an SQS.Queue instance
-queue = sqs.create_queue(QueueName='test', Attributes={'DelaySeconds': '5'})
+# Get the queue
+queue = sqs.get_queue_by_name(QueueName='talkWithCarlLights')
 
-# You can now access identifiers and attributes
-print(queue.url)
-print(queue.attributes.get('DelaySeconds'))
+# Create a new message
+response = queue.send_message(MessageBody='world')
 
-# for i in range(1,1000):
-#     # check queue to see if a request exists 
-#     incomingMsgs = queue.get_messages()
+# The response is NOT a resource, but gives you a message ID and MD5
+# print(response.get('MessageId'))
+# print(response.get('MD5OfMessageBody'))
 
-#     # if messages are found, process
-#     if len(incomingMsgs) > 0:
-#         for incomingMsg in incomingMsgs:
-#             msg = json.loads(incomingMsg.get_body())
-#             action = msg['request']['action']
+while True:
+  # print "tick"
+  time.sleep(1)
+  # time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+  # Process messages by printing out body and optional author name
+  for message in queue.receive_messages(MessageAttributeNames=['Author']):
+      # Get the custom author message attribute if it was set
+      author_text = ''
+      if message.message_attributes is not None:
+          author_name = message.message_attributes.get('Author').get('StringValue')
+          if author_name:
+              author_text = ' ({0})'.format(author_name)
 
-# 	    # check what the requested action is
-# 	    if action == 'pitch ball':
-# 	        print 'pitch the ball'
+      # Print out the body and author (if set)
+      print('Hello, {0}!{1}'.format(message.body, author_text))
 
-#         	# set parameters for IO on raspberry PI
-#     	        relay_pin = 12
+      # Let the queue know that the message is processed
+      message.delete()
 
-# 	    	# configure IO on raspberry PI to communicate
-# 	    	GPIO.setmode(GPIO.BOARD)
-# 	    	GPIO.setwarnings(False)
-# 	    	GPIO.setup(relay_pin, GPIO.OUT)
+  # for i in range(1,1000):
+  #     # check queue to see if a request exists 
+  #     incomingMsgs = queue.get_messages()
 
-# 	    	print "Relay Active"
+  #     # if messages are found, process
+  #     if len(incomingMsgs) > 0:
+  #         for incomingMsg in incomingMsgs:
+  #             msg = json.loads(incomingMsg.get_body())
+  #             action = msg['request']['action']
 
-# 	    	GPIO.output(relay_pin, GPIO.HIGH)
+  # 	    # check what the requested action is
+  # 	    if action == 'lights on':
+  # 	        print 'pitch the ball'
 
-# 	    	# pause
-# 	    	time.sleep(rotor_duration)
+  #         	# set parameters for IO on raspberry PI
+  #     	        # relay_pin = 12
 
-# 	   	print "Relay Off"
+  # 	    	# configure IO on raspberry PI to communicate
+  # 	    	# GPIO.setmode(GPIO.BOARD)
+  # 	    	# GPIO.setwarnings(False)
+  # 	    	# GPIO.setup(relay_pin, GPIO.OUT)
 
-# 	    	GPIO.output(relay_pin, GPIO.LOW)
+  # 	    	print "Relay Active"
 
-# 	    	#remove message from queue
-# 	    	queue.delete_message(incomingMsg)
+  # 	    	# GPIO.output(relay_pin, GPIO.HIGH)
 
-# 	    	GPIO.cleanup()
+  # 	    	# pause
+  # 	    	time.sleep(rotor_duration)
 
-#     time.sleep(1)
-#     print i
+  # 	   	print "Relay Off"
+
+  # 	    	# GPIO.output(relay_pin, GPIO.LOW)
+
+  # 	    	#remove message from queue
+  # 	    	queue.delete_message(incomingMsg)
+
+  # 	    	# GPIO.cleanup()
+
+  #     print i
