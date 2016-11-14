@@ -1,0 +1,7 @@
+CarlLightsIntent say hello
+CarlLightsIntent say hello world
+CarlLightsIntent hello
+CarlLightsIntent say hi
+CarlLightsIntent say hi world
+CarlLightsIntent hi
+CarlLightsIntent how are you
