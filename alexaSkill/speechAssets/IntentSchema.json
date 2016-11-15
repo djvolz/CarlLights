@@ -1,7 +1,13 @@
 {
   "intents": [
     {
-      "intent": "Carl"
+      "intent": "SequenceIntent",
+      "slots": [
+      {
+        "name" : "Sequence",
+        "type": "LIST_OF_SEQUENCES"
+      }
+     ]
     },
     {
       "intent": "AMAZON.StartOverIntent"

@@ -2,7 +2,7 @@
 * @Author: djvolz
 * @Date:   2016-11-14 00:26:18
 * @Last Modified by:   djvolz
-* @Last Modified time: 2016-11-14 17:07:29
+* @Last Modified time: 2016-11-15 00:19:07
 */
 /**
  * This skill triggers a message queue that instructs a raspberry pi to invoke
@@ -10,6 +10,7 @@
  */
 
 var AWS = require('aws-sdk');
+var sequences = require('./sequences');
 
 var sqs = new AWS.SQS({region : 'us-east-1'});
 
@@ -87,9 +88,9 @@ function onIntent(intentRequest, session, callback) {
 
     // Dispatch to the individual skill handlers
 
-    if ("Carl" === intentName) {
-        carlLights(intent, session, callback);
-    } else if ("AMAZON.StartOverIntent" === intentName) {
+    if ("SequenceIntent" === intentName) {
+        sequenceIntent(intent, session, callback);
+    }  else if ("AMAZON.StartOverIntent" === intentName) {
         getWelcomeResponse(callback);
     } else if ("AMAZON.HelpIntent" === intentName) {
         getHelpResponse(session, callback);
@@ -168,48 +169,67 @@ function handleSessionEndRequest(callback) {
     callback({}, buildSpeechletResponse(cardTitle, speechOutput, speechOutput, null, shouldEndSession));
 }
 
-// Control lights
-function carlLights(intent, session, callback) {
-    var cardTitle = "Carl the Lights Butler";
-    var sessionAttributes = {};
-    var shouldEndSession = true;
 
-    // first check if a session exists, if so assume playing a game and use, if not, assume practice mode.
+// Control lights
+function sequenceIntent(intent, session, callback) {
+    var repromptText = "What else can I help with?";
+    var shouldEndSession = true;
+    var speechOutput;
+    var sessionAttributes = {};
+
     if (session.attributes) {
         sessionAttributes = session.attributes;
-    }    
-
-    var cardOutput = "Doing the lights";
-    var speechOutput = "Get ready, here comes the lights";
-    var repromptText = "When you are ready for more light effects, please say lights.";
+    } 
     
-    console.log("Sending Message to SQS Queue");
+    var sequenceName = null;
+    var sequenceSlot = intent.slots.Sequence;
+    if (sequenceSlot && sequenceSlot.value){
+        sequenceName = sequenceSlot.value.toLowerCase();
+    } 
 
-    var lightsRequest = {};
-        lightsRequest.action = 'lights on';
+    if (sequenceName in sequences) {
+        var cardTitle = "Putting on " + sequenceName;
+        speechOutput = "Get ready, here comes sequence " + sequenceName;
 
-    // package data to be sent
-    var sendData = {};
-        sendData.request = lightsRequest;
+        console.log("Sending Message to SQS Queue");
 
-    // set parameters for message queue to transport data        
-    var params = {
-        MessageBody: JSON.stringify(sendData),
-        QueueUrl: QUEUE_URL + AWS_ACCOUNT + '/' + QUEUE_NAME
-    };
-    
-    // send message to SQS and return back message to Alexa
-    sqs.sendMessage(params, function(err, data){
-        if(err) {
-            console.log('error:',"Fail Send Message" + err);
-            callback(sessionAttributes,
-                buildSpeechletResponse(err, "Error", "Error", "Error", true));
+        var lightsRequest = {};
+            lightsRequest.action = sequenceName;
+
+        // package data to be sent
+        var sendData = {};
+            sendData.request = lightsRequest;
+
+        // set parameters for message queue to transport data        
+        var params = {
+            MessageBody: JSON.stringify(sendData),
+            QueueUrl: QUEUE_URL + AWS_ACCOUNT + '/' + QUEUE_NAME
+        };
+
+        // send message to SQS and return back message to Alexa
+        sqs.sendMessage(params, function(err, data){
+            if(err) {
+                console.log('error:',"Fail Send Message" + err);
+                callback(sessionAttributes,
+                    buildSpeechletResponse(err, "Error", "Error", "Error", true));
+            } else {
+                console.log('successful post - data:',data.MessageId);
+                callback(sessionAttributes,
+                buildSpeechletResponse(cardTitle, speechOutput, speechOutput, repromptText, shouldEndSession));
+            }
+        });
+    } else {
+        if (sequenceName) {
+            speechOutput = "I'm sorry, I currently do not know how to do " + sequenceName + ". What else can I help with?";
         } else {
-            console.log('successful post - data:',data.MessageId);
-            callback(sessionAttributes,
-            buildSpeechletResponse(cardTitle, speechOutput, speechOutput, repromptText, shouldEndSession));
+            speechOutput = "I'm sorry, I currently do not know that sequence. What else can I help with?";
         }
-    });
+
+        shouldEndSession = false;
+
+        callback(sessionAttributes,
+            buildSpeechletResponse("Not found", speechOutput, speechOutput, repromptText, shouldEndSession));
+    }
 }
 
 

@@ -37,12 +37,13 @@ import socket
 import struct
 import sys
 
+
 class Client(object):
 
     def __init__(self, server_ip_port, long_connection=True, verbose=False):
         """Create an OPC client object which sends pixels to an OPC server.
 
-        server_ip_port should be an ip:port or hostname:port as a single string.
+        server_ip_port should be an ip:port or hostname:port as a single string
         For example: '127.0.0.1:7890' or 'localhost:7890'
 
         There are two connection modes:
@@ -51,14 +52,14 @@ class Client(object):
           create a new one whenever put_pixels is called.  This mode is best
           when there's high latency or very high framerates.
         * In short connection mode, we open a connection when it's needed and
-          close it immediately after.  This means creating a connection for each
+          close it immediately after. This means creating a connection for each
           call to put_pixels. Keeping the connection usually closed makes it
           possible for others to also connect to the server.
 
         A connection is not established during __init__.  To check if a
         connection will succeed, use can_connect().
 
-        If verbose is True, the client will print debugging info to the console.
+        If verbose is True, the client will print debugging info to the console
 
         """
         self.verbose = verbose
@@ -107,7 +108,7 @@ class Client(object):
 
         Return True on success or False on failure.
 
-        If in long connection mode, this connection will be kept and re-used for
+        If in long connection mode, this connection will be kept and reused for
         subsequent put_pixels calls.
 
         """
@@ -117,14 +118,14 @@ class Client(object):
         return success
 
     def put_pixels(self, pixels, channel=0):
-        """Send the list of pixel colors to the OPC server on the given channel.
+        """Send the list of pixel colors to the OPC server on the given channel
 
         channel: Which strand of lights to send the pixel colors to.
             Must be an int in the range 0-255 inclusive.
             0 is a special value which means "all channels".
 
         pixels: A list of 3-tuples representing rgb colors.
-            Each value in the tuple should be in the range 0-255 inclusive. 
+            Each value in the tuple should be in the range 0-255 inclusive.
             For example: [(255, 255, 255), (0, 0, 0), (127, 0, 0)]
             Floats will be rounded down to integers.
             Values outside the legal range will be clamped.
@@ -146,16 +147,17 @@ class Client(object):
             return False
 
         # build OPC message
-        len_hi_byte = int(len(pixels)*3 / 256)
-        len_lo_byte = (len(pixels)*3) % 256
+        len_hi_byte = int(len(pixels) * 3 / 256)
+        len_lo_byte = (len(pixels) * 3) % 256
         command = 0  # set pixel colors from openpixelcontrol.org
 
-        header = struct.pack("BBBB", channel, command, len_hi_byte, len_lo_byte)
+        header = struct.pack("BBBB", channel, command,
+                             len_hi_byte, len_lo_byte)
 
-        pieces = [ struct.pack( "BBB",
-                     min(255, max(0, int(r))),
-                     min(255, max(0, int(g))),
-                     min(255, max(0, int(b)))) for r, g, b in pixels ]
+        pieces = [struct.pack("BBB",
+                              min(255, max(0, int(r))),
+                              min(255, max(0, int(g))),
+                              min(255, max(0, int(b)))) for r, g, b in pixels]
 
         if sys.version_info[0] == 3:
             # bytes!
@@ -177,5 +179,3 @@ class Client(object):
             self.disconnect()
 
         return True
-
-

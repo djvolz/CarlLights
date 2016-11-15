@@ -24,6 +24,7 @@ Alexa:
   ☐ update Alexa controls
   ☐ cancel
   ☐ "Alexa, tell Carl to put on <light sequence>"
+  ☐ Use AlexaSkills.js
 
 System:
  ☐ create cron job for launching lights controller
