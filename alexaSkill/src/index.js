@@ -1,3 +1,9 @@
+/*
+* @Author: djvolz
+* @Date:   2016-11-14 00:26:18
+* @Last Modified by:   djvolz
+* @Last Modified time: 2016-11-14 17:07:29
+*/
 /**
  * This skill triggers a message queue that instructs a raspberry pi to invoke
  * commands.
