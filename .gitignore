@@ -139,5 +139,6 @@ jspm_packages
 # Yarn Integrity file
 .yarn-integrity
 
-
+# SFTP Plugin
+sftp-config.json
 
