@@ -6,9 +6,4 @@ AMAZON.StopIntent goodbye
 AMAZON.StopIntent exit
 AMAZON.StopIntent quit
 
-Carl lights
-Carl secure the premises
-Carl lights on
-Carl lamp commander on
-Carl get off his butt
-Carl party time
+SequenceIntent put on {Sequence}

@@ -7,18 +7,40 @@
    \____|__|__|__|\_|_____|    |_____|____|___,_|__|__| |__|   \___|
 #######################################################################
 
+Sequences:
+  ☐ turn off lights
+  ☐ christmas sequence
+    ☐ christmas music
+  ☐ define rules for sequences
+    ☐ sleep times
+    ☐ cannot be blocking (no infinite while loops)
+    ☐ general API/templates
+
 Scheme launching:
- ☐ create launcher.py
- ☐ alexa-based launching
+ ☐ put light sequences into a folder
  ☐ slow down message queuing for stationary light sequences
  ☐ faster processing for active light sequences
+ ✔ create launcher.py @done (11-14-16 18:28)
+ ✔ alexa-based launching @done (11-15-16 00:55)
 
 Alexa:
   ☐ update Alexa controls
   ☐ cancel
+  ☐ Use AlexaSkills.js
+  ✔ "Alexa, tell Carl to put on <light sequence>" @done (11-15-16 00:55)
 
 System:
  ☐ create cron job for launching lights controller
+ ☐ need to have interrupts for message processing 
 
 Wish list:
  ☐ integrate audio processing
+
+Documentation:
+  ☐ sequence locations
+    ☐ raspberryPi (as a file)
+    ☐ LIST_OF_SEQUENCES (name)
+    ☐ sequences.js (name and description)
+    ☐ lightSequence.py (factory generator)
+
+    
