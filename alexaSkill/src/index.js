@@ -2,7 +2,7 @@
 * @Author: djvolz
 * @Date:   2016-11-14 00:26:18
 * @Last Modified by:   djvolz
-* @Last Modified time: 2016-11-15 00:19:07
+* @Last Modified time: 2016-11-15 00:33:16
 */
 /**
  * This skill triggers a message queue that instructs a raspberry pi to invoke
@@ -189,7 +189,7 @@ function sequenceIntent(intent, session, callback) {
 
     if (sequenceName in sequences) {
         var cardTitle = "Putting on " + sequenceName;
-        speechOutput = "Get ready, here comes sequence " + sequenceName;
+        speechOutput = "Get ready, here comes " + sequenceName;
 
         console.log("Sending Message to SQS Queue");
 

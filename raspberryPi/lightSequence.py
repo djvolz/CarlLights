@@ -2,7 +2,7 @@
 # @Author: djvolz
 # @Date:   2016-11-14 17:04:42
 # @Last Modified by:   djvolz
-# @Last Modified time: 2016-11-14 18:00:57
+# @Last Modified time: 2016-11-15 01:10:24
 
 import chase
 
@@ -15,7 +15,8 @@ class LightSequence(object):
     @staticmethod
     def factory(type):
         # return eval(type + "()")
-        print("Generating " + type)
-        if type == "Chase":
+        if type == "chase":
             return chase.Chase(client, numLEDs)
-        assert 0, "Bad light sequence creation: " + type
+        else:
+          return None
+        # assert 0, "Bad light sequence creation: " + type
