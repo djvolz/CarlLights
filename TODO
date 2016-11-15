@@ -7,8 +7,15 @@
    \____|__|__|__|\_|_____|    |_____|____|___,_|__|__| |__|   \___|
 #######################################################################
 
+Sequences:
+  ☐ define rules for sequences
+    ☐ sleep times
+    ☐ cannot be blocking (no infinite while loops)
+    ☐ general API/templates
+
 Scheme launching:
- ☐ create launcher.py
+ ✔ create launcher.py @done (11-14-16 18:28)
+ ☐ put light lequences into a folder
  ☐ alexa-based launching
  ☐ slow down message queuing for stationary light sequences
  ☐ faster processing for active light sequences
@@ -16,6 +23,7 @@ Scheme launching:
 Alexa:
   ☐ update Alexa controls
   ☐ cancel
+  ☐ "Alexa, tell Carl to put on <light sequence>"
 
 System:
  ☐ create cron job for launching lights controller

@@ -139,6 +139,8 @@ jspm_packages
 # Yarn Integrity file
 .yarn-integrity
 
-# SFTP Plugin
+# Sublime
+*.sublime-workspace
+*.sublime-project
 sftp-config.json
 
