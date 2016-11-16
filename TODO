@@ -12,7 +12,7 @@ Sequences:
   ☐ christmas sequence
     ☐ christmas music
   ☐ define rules for sequences
-    ☐ sleep times
+    ✘ sleep times @cancelled (11-15-16 22:15)
     ✘ cannot be blocking (no infinite while loops) @cancelled (11-15-16 21:31)
     ☐ general API/templates
 
@@ -27,6 +27,7 @@ Alexa:
   ☐ update Alexa controls
   ☐ cancel
   ☐ Use AlexaSkills.js
+  ☐ play with SQS receive times/sleep time of message processing
   ✔ "Alexa, tell Carl to put on <light sequence>" @done (11-15-16 00:55)
 
 System:
@@ -38,9 +39,17 @@ Wish list:
 
 Documentation:
   ☐ sequence locations
-    ☐ raspberryPi (as a file)
+    ☐ raspberryPi (as a sequence_file.py)
     ☐ LIST_OF_SEQUENCES (name)
     ☐ sequences.js (name and description)
     ☐ lightSequence.py (factory generator)
+  ☐ equipment required for setup
+    ☐ limited to 64 LEDs with fadecandy
+  ☐ Alexa architecture
+    ☐ available commands
+    ☐ put on <light sequence>
+  ☐ raspberryPi
+    ☐ make server accessible e.g. carl.local with net tools 
+    ☐ launch cron job for when raspberry pi
 
     

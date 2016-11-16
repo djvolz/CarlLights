@@ -2,7 +2,7 @@
 # @Author: djvolz
 # @Date:   2016-11-14 17:03:11
 # @Last Modified by:   djvolz
-# @Last Modified time: 2016-11-15 20:52:10
+# @Last Modified time: 2016-11-15 22:13:31
 
 import time
 import json  # import json library to parse messages
@@ -28,10 +28,7 @@ class Controller:
 
     def processMessages(self):
         # Process messages by printing out body and optional author name
-        for message in \
-                self._queue.receive_messages(
-                MessageAttributeNames=['Author']):
-
+        for message in self._queue.receive_messages():
             # Parse the message request for the action.
             request = json.loads(message.body)
             action = request['request']['action']
