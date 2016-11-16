@@ -2,20 +2,18 @@
 # @Author: djvolz
 # @Date:   2016-11-14 17:03:11
 # @Last Modified by:   djvolz
-# @Last Modified time: 2016-11-15 01:13:28
+# @Last Modified time: 2016-11-15 20:52:10
 
 import time
 import json  # import json library to parse messages
 import boto3  # import boto library that handles queuing functions
 import lightSequence as ls
+from multiprocessing import Process
 
 
 class Controller:
 
     def __init__(self):
-        # Set the default action
-        self._action = 'undefined'
-
         # Get the service resource
         sqs = boto3.resource('sqs')
 
@@ -37,20 +35,33 @@ class Controller:
             # Parse the message request for the action.
             request = json.loads(message.body)
             action = request['request']['action']
-            if(action):
-                self._action = action
 
             # Let the queue know that the message is processed
             message.delete()
 
+            if(action):
+                return action
+            else:
+                return None
+
     def run(self):
-        # Jump straight in
+        procs = []
         while True:
             # Process messages from Alexa
-            self.processMessages()
+            sequence = self.processMessages()
+
+            print(sequence)
 
             # Generate the light sequence based on the specified action
-            self.lightsFactory(self._action)
+            if(sequence):
+                # Terminate other processes
+                for proc in procs:
+                    print("Terminating process")
+                    proc.terminate()
+                    procs.remove(proc)
+                p = Process(target=self.lightsFactory, args=(sequence,))
+                procs.append(p)
+                p.start()
 
-            # Sleepy time
-            time.sleep(1)
+            # Time to rest
+            time.sleep(5)

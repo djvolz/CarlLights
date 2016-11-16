@@ -2,7 +2,7 @@
 # @Author: djvolz
 # @Date:   2016-11-14 17:15:36
 # @Last Modified by:   djvolz
-# @Last Modified time: 2016-11-14 17:33:56
+# @Last Modified time: 2016-11-15 20:52:37
 
 # Light each LED in sequence, and repeat.
 
@@ -16,8 +16,9 @@ class Chase():
         self._client = opc.Client(client)
 
     def run(self):
-        for i in range(self._numLEDs):
-            pixels = [(0, 0, 0)] * self._numLEDs
-            pixels[i] = (255, 255, 255)
-            self._client.put_pixels(pixels)
-            time.sleep(0.1)
+        while True:
+            for i in range(self._numLEDs):
+                pixels = [(0, 0, 0)] * self._numLEDs
+                pixels[i] = (255, 255, 255)
+                self._client.put_pixels(pixels)
+                time.sleep(0.1)

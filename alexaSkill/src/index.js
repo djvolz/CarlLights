@@ -2,7 +2,7 @@
 * @Author: djvolz
 * @Date:   2016-11-14 00:26:18
 * @Last Modified by:   djvolz
-* @Last Modified time: 2016-11-15 00:33:16
+* @Last Modified time: 2016-11-15 11:00:25
 */
 /**
  * This skill triggers a message queue that instructs a raspberry pi to invoke
@@ -119,7 +119,7 @@ function onSessionEnded(sessionEndedRequest, session) {
 function getWelcomeResponse(callback) {
     var sessionAttributes = {};
     var shouldEndSession = false;
-    var cardTitle = "Welcome to Robot Roxie";
+    var cardTitle = "Welcome to Carl Lights";
 
     var speechOutput = "Hello. I've been watching you.";
 

@@ -13,13 +13,13 @@ Sequences:
     ☐ christmas music
   ☐ define rules for sequences
     ☐ sleep times
-    ☐ cannot be blocking (no infinite while loops)
+    ✘ cannot be blocking (no infinite while loops) @cancelled (11-15-16 21:31)
     ☐ general API/templates
 
 Scheme launching:
  ☐ put light sequences into a folder
  ☐ slow down message queuing for stationary light sequences
- ☐ faster processing for active light sequences
+ ✘ faster processing for active light sequences @cancelled (11-15-16 21:31)
  ✔ create launcher.py @done (11-14-16 18:28)
  ✔ alexa-based launching @done (11-15-16 00:55)
 
@@ -31,7 +31,7 @@ Alexa:
 
 System:
  ☐ create cron job for launching lights controller
- ☐ need to have interrupts for message processing 
+ ✔ need to have interrupts for message processing  @done (11-15-16 21:31)
 
 Wish list:
  ☐ integrate audio processing

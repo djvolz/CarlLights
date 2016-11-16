@@ -7,3 +7,4 @@ AMAZON.StopIntent exit
 AMAZON.StopIntent quit
 
 SequenceIntent put on {Sequence}
+SequenceIntent turn on {Sequence}
